@@ -12,6 +12,11 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
+// type ReqType struct {
+// 	id     int
+// 	method string
+// }
+
 func jsonPrettyPrint(in string) string {
 	var out bytes.Buffer
 	err := json.Indent(&out, []byte(in), "", "\t")
@@ -23,11 +28,12 @@ func jsonPrettyPrint(in string) string {
 
 func doRequest(httpType string, url string, data ...string) string {
 	var outstr string
+	log.Println(httpType)
 	log.Println(data)
 
 	switch httpType {
-	case "get":
-		log.Println("GET" + url)
+	case "GET":
+		log.Println("GET " + url)
 		resp, err := http.Get(url)
 		if err != nil {
 			log.Fatal("HTTP Error", err)
@@ -35,13 +41,17 @@ func doRequest(httpType string, url string, data ...string) string {
 		defer resp.Body.Close()
 		body, _ := ioutil.ReadAll(resp.Body)
 		outstr = string(body)
-	case "post":
-		log.Println("POST" + url)
+	case "POST":
+		log.Println("POST " + url)
 	}
 	return outstr
 }
 
 func addWidgets(grid *gtk.Grid) {
+
+	var activeReqType string = "GET"
+	// var reqTypes = make([]ReqType, 5)
+	// reqTypes[0] = ReqType(1, "GET")
 
 	sw, _ := gtk.ScrolledWindowNew(nil, nil)
 	sw.SetHExpand(true)
@@ -56,6 +66,15 @@ func addWidgets(grid *gtk.Grid) {
 	urlEntry, _ := gtk.EntryNew()
 	respTxt, _ := gtk.TextViewNew()
 	jsonDataEntry, _ := gtk.TextViewNew()
+
+	reqTypeCombo, _ := gtk.ComboBoxTextNew()
+	reqTypeCombo.Append("GET", "GET")
+	reqTypeCombo.Append("POST", "POST")
+	reqTypeCombo.Append("PUT", "PUT")
+	reqTypeCombo.Append("PATCH", "PATCH")
+	reqTypeCombo.Append("DELETE", "DELETE")
+	reqTypeCombo.SetActive(0)
+
 	submit, _ := gtk.ButtonNewWithLabel("Submit Request")
 
 	// respTxt.SetEditable(false)
@@ -65,16 +84,20 @@ func addWidgets(grid *gtk.Grid) {
 		urlTxt, _ := urlEntry.GetText()
 		buff, _ := respTxt.GetBuffer()
 		// https://reqres.in/api/users/
-		buff.SetText(jsonPrettyPrint(doRequest("get", urlTxt)))
+		buff.SetText(jsonPrettyPrint(doRequest(activeReqType, urlTxt)))
 	}
 
 	submit.Connect("clicked", SubmitReq)
 	urlEntry.Connect("activate", SubmitReq)
+	reqTypeCombo.Connect("changed", func() {
+		tmp := reqTypeCombo.GetActive()
+		activeReqType = string(tmp)
+	})
 
 	/*
 		-------------
 		1|	title	| => gostman
-		2| labl	inp	| => ReqType input
+		2| labl	cmb	| => ReqType input
 		3| labl	inp	| => url input
 		4| labl	inp	| => jsondata input
 		5|	Btn		| => input
@@ -86,7 +109,7 @@ func addWidgets(grid *gtk.Grid) {
 	// Attach(widget, XPos, YPos, Width, Height)
 	grid.Attach(title, 0, 0, 3, 1)
 	grid.Attach(reqTypeLabel, 0, 1, 1, 1)
-
+	grid.Attach(reqTypeCombo, 1, 1, 1, 1)
 	grid.Attach(urlLabel, 0, 2, 1, 1)
 	grid.Attach(urlEntry, 1, 2, 2, 1)
 	grid.Attach(jsonDataLabel, 0, 3, 1, 1)
