@@ -1,6 +1,6 @@
 # gostman
 
-gostman - golang POSTman (HTTP CLient)
+golang POSTman (HTTP Client)
 
 ## Quickstart
 
