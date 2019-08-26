@@ -15,6 +15,6 @@ func doPUT(url, headers, data string) {
 func doPATCH(url, headers, data string) {
 
 }
-func doDELETE(url, headers) {
+func doDELETE(url, headers string) {
 
 }
